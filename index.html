@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Competitive Intelligence Dashboard - Real-time technology sector stock analysis for business professionals">
+    <meta property="og:title" content="Competitive Intelligence Dashboard">
+    <meta property="og:description" content="Track competitor stock performance across major technology companies">
+    <meta property="og:type" content="website">
+    <title>Competitive Intelligence Dashboard - Tech Sector Analysis</title>
+
+    <style>
+        /* ===== CSS RESET & BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e4e4e7;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* ===== CONTAINER & LAYOUT ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== HEADER SECTION ===== */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #a1a1aa;
+            font-weight: 400;
+        }
+
+        /* ===== CONTROLS SECTION ===== */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== DASHBOARD CARD ===== */
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        /* ===== STATUS MESSAGES ===== */
+        .status-message {
+            text-align: center;
+            padding: 30px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .loading {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        /* ===== TABLE STYLES ===== */
+        .table-container {
+            overflow-x: auto;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        td {
+            padding: 18px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 1rem;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ===== PRICE HIGHLIGHTING ===== */
+        .price-cell {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .highest-price {
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .lowest-price {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .change-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .indicator-high {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+
+        .indicator-low {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .indicator-neutral {
+            background: rgba(161, 161, 170, 0.15);
+            color: #a1a1aa;
+        }
+
+        /* ===== TIMESTAMP ===== */
+        .timestamp {
+            text-align: center;
+            margin-top: 20px;
+            color: #a1a1aa;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .dashboard-card {
+                padding: 20px;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 12px 8px;
+            }
+
+            .controls {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        /* ===== ACCESSIBILITY ===== */
+        button:focus,
+        button:focus-visible {
+            outline: 3px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            body {
+                background: #000000;
+                color: #ffffff;
+            }
+
+            .dashboard-card {
+                border: 2px solid #ffffff;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header>
+            <h1>Competitive Intelligence Dashboard</h1>
+            <p class="subtitle">Technology Sector Stock Analysis</p>
+        </header>
+
+        <!-- Control Buttons -->
+        <div class="controls">
+            <button class="btn-primary" id="refreshBtn" onclick="fetchStockData()">
+                🔄 Refresh Data
+            </button>
+            <button class="btn-secondary" id="exportBtn" onclick="exportToCSV()" disabled>
+                📊 Export to CSV
+            </button>
+        </div>
+
+        <!-- Dashboard Card -->
+        <div class="dashboard-card">
+            <!-- Loading/Error Messages -->
+            <div id="statusMessage"></div>
+
+            <!-- Data Table -->
+            <div class="table-container" id="tableContainer" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Ticker</th>
+                            <th>Current Price</th>
+                            <th>Change Indicator</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockTableBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Timestamp -->
+            <div class="timestamp" id="timestamp"></div>
+        </div>
+    </div>
+
+    <script>
+        // ===== GLOBAL STATE =====
+        let stockData = [];
+        let lastFetchTime = null;
+
+        /**
+         * Fetch stock data from the serverless API
+         * Displays loading state and handles errors gracefully
+         */
+        async function fetchStockData() {
+            const statusMessage = document.getElementById('statusMessage');
+            const tableContainer = document.getElementById('tableContainer');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const exportBtn = document.getElementById('exportBtn');
+
+            // Show loading state
+            statusMessage.innerHTML = '<div class="status-message loading">⏳ Fetching latest data...</div>';
+            statusMessage.style.display = 'block';
+            tableContainer.style.display = 'none';
+            refreshBtn.disabled = true;
+            exportBtn.disabled = true;
+
+            try {
+                // Call the serverless API endpoint
+                const response = await fetch('/api/stocks');
+
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                // Check if API returned an error
+                if (!result.success) {
+                    throw new Error(result.error || 'Unknown error occurred');
+                }
+
+                // Filter out any stocks that failed to fetch
+                stockData = result.data.filter(stock => stock.price !== null);
+
+                if (stockData.length === 0) {
+                    throw new Error('No stock data available');
+                }
+
+                lastFetchTime = new Date(result.timestamp);
+
+                // Hide loading, show table
+                statusMessage.style.display = 'none';
+                tableContainer.style.display = 'block';
+
+                // Render the data
+                renderStockTable();
+                updateTimestamp();
+
+                // Enable export button
+                exportBtn.disabled = false;
+
+            } catch (error) {
+                console.error('Error fetching stock data:', error);
+
+                // Show error state
+                statusMessage.innerHTML = `
+                    <div class="status-message error">
+                        ⚠️ Unable to load data. Please try again.<br>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+                statusMessage.style.display = 'block';
+                tableContainer.style.display = 'none';
+                exportBtn.disabled = true;
+
+            } finally {
+                // Re-enable refresh button
+                refreshBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Render stock data in the table with highlighting
+         * Identifies highest and lowest prices and applies visual indicators
+         */
+        function renderStockTable() {
+            const tbody = document.getElementById('stockTableBody');
+            tbody.innerHTML = '';
+
+            // Find highest and lowest prices
+            const prices = stockData.map(stock => stock.price);
+            const highestPrice = Math.max(...prices);
+            const lowestPrice = Math.min(...prices);
+
+            // Render each stock row
+            stockData.forEach(stock => {
+                const row = document.createElement('tr');
+
+                // Determine if this is the highest or lowest price
+                const isHighest = stock.price === highestPrice;
+                const isLowest = stock.price === lowestPrice;
+
+                // Price cell with conditional formatting
+                let priceClass = '';
+                let indicatorClass = 'indicator-neutral';
+                let indicatorText = '—';
+
+                if (isHighest) {
+                    priceClass = 'highest-price';
+                    indicatorClass = 'indicator-high';
+                    indicatorText = '↑ Highest';
+                } else if (isLowest) {
+                    priceClass = 'lowest-price';
+                    indicatorClass = 'indicator-low';
+                    indicatorText = '↓ Lowest';
+                }
+
+                row.innerHTML = `
+                    <td><strong>${stock.companyName}</strong></td>
+                    <td>${stock.ticker}</td>
+                    <td class="price-cell">
+                        <span class="${priceClass}">$${stock.price.toFixed(2)}</span>
+                    </td>
+                    <td>
+                        <span class="change-indicator ${indicatorClass}">
+                            ${indicatorText}
+                        </span>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        /**
+         * Update the timestamp display
+         * Shows when the data was last fetched
+         */
+        function updateTimestamp() {
+            const timestampEl = document.getElementById('timestamp');
+            if (lastFetchTime) {
+                const formattedTime = lastFetchTime.toLocaleString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                timestampEl.textContent = `Last updated: ${formattedTime}`;
+            }
+        }
+
+        /**
+         * Export stock data to CSV format
+         * Downloads a CSV file with all current stock information
+         */
+        function exportToCSV() {
+            if (stockData.length === 0) {
+                alert('No data available to export');
+                return;
+            }
+
+            // Create CSV header
+            const headers = ['Company', 'Ticker', 'Current Price', 'Timestamp'];
+            const csvRows = [headers.join(',')];
+
+            // Add data rows
+            stockData.forEach(stock => {
+                const row = [
+                    `"${stock.companyName}"`,
+                    stock.ticker,
+                    stock.price.toFixed(2),
+                    `"${stock.timestamp}"`
+                ];
+                csvRows.push(row.join(','));
+            });
+
+            // Create CSV content
+            const csvContent = csvRows.join('\n');
+
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().split('T')[0];
+            link.setAttribute('href', url);
+            link.setAttribute('download', `competitor-stocks-${timestamp}.csv`);
+            link.style.visibility = 'hidden';
+
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // ===== INITIALIZATION =====
+        // Automatically fetch data when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchStockData();
+        });
+    </script>
+</body>
+</html>
