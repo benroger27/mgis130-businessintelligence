@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Competitive Intelligence Dashboard - Real-time technology sector stock analysis for business professionals">
+    <meta name="description" content="Competitive Intelligence Dashboard - Real-time technology sector stock analysis with economic indicators">
     <meta property="og:title" content="Competitive Intelligence Dashboard">
-    <meta property="og:description" content="Track competitor stock performance across major technology companies">
+    <meta property="og:description" content="Track competitor stock performance and key economic indicators">
     <meta property="og:type" content="website">
-    <title>Competitive Intelligence Dashboard - Tech Sector Analysis</title>
+    <title>Competitive Intelligence Dashboard - Tech Sector & Economic Analysis</title>
 
     <style>
         /* ===== CSS RESET & BASE STYLES ===== */
@@ -28,7 +28,7 @@
 
         /* ===== CONTAINER & LAYOUT ===== */
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             animation: fadeIn 0.6s ease-in;
         }
@@ -62,10 +62,60 @@
             letter-spacing: -0.5px;
         }
 
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 20px;
+            letter-spacing: -0.3px;
+        }
+
         .subtitle {
             font-size: 1.1rem;
             color: #a1a1aa;
             font-weight: 400;
+        }
+
+        /* ===== ECONOMIC INDICATORS SECTION ===== */
+        .economic-indicators {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .indicator-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .indicator-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .indicator-label {
+            font-size: 0.9rem;
+            color: #a1a1aa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .indicator-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 8px;
+        }
+
+        .indicator-meta {
+            font-size: 0.85rem;
+            color: #71717a;
         }
 
         /* ===== CONTROLS SECTION ===== */
@@ -126,6 +176,7 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
+            margin-bottom: 20px;
         }
 
         /* ===== STATUS MESSAGES ===== */
@@ -207,6 +258,16 @@
             border-bottom: none;
         }
 
+        .sector-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            background: rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
         /* ===== PRICE HIGHLIGHTING ===== */
         .price-cell {
             font-weight: 700;
@@ -269,6 +330,10 @@
                 font-size: 1.8rem;
             }
 
+            h2 {
+                font-size: 1.3rem;
+            }
+
             .subtitle {
                 font-size: 1rem;
             }
@@ -293,6 +358,10 @@
             button {
                 width: 100%;
             }
+
+            .economic-indicators {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* ===== ACCESSIBILITY ===== */
@@ -302,7 +371,6 @@
             outline-offset: 2px;
         }
 
-        /* High contrast mode support */
         @media (prefers-contrast: high) {
             body {
                 background: #000000;
@@ -314,7 +382,6 @@
             }
         }
 
-        /* Reduced motion support */
         @media (prefers-reduced-motion: reduce) {
             *,
             *::before,
@@ -331,8 +398,13 @@
         <!-- Header Section -->
         <header>
             <h1>Competitive Intelligence Dashboard</h1>
-            <p class="subtitle">Technology Sector Stock Analysis</p>
+            <p class="subtitle">Technology Sector Stock Analysis & Economic Indicators</p>
         </header>
+
+        <!-- Economic Indicators Section -->
+        <div class="economic-indicators" id="economicIndicators" style="display: none;">
+            <!-- Indicators will be populated here -->
+        </div>
 
         <!-- Control Buttons -->
         <div class="controls">
@@ -346,6 +418,8 @@
 
         <!-- Dashboard Card -->
         <div class="dashboard-card">
+            <h2 style="text-align: center; margin-bottom: 25px;">Stock Performance</h2>
+
             <!-- Loading/Error Messages -->
             <div id="statusMessage"></div>
 
@@ -356,8 +430,9 @@
                         <tr>
                             <th>Company</th>
                             <th>Ticker</th>
+                            <th>Sector</th>
                             <th>Current Price</th>
-                            <th>Change Indicator</th>
+                            <th>Indicator</th>
                         </tr>
                     </thead>
                     <tbody id="stockTableBody">
@@ -374,15 +449,17 @@
     <script>
         // ===== GLOBAL STATE =====
         let stockData = [];
+        let economicData = null;
         let lastFetchTime = null;
 
         /**
-         * Fetch stock data from the serverless API
+         * Fetch stock data and economic indicators from the serverless API
          * Displays loading state and handles errors gracefully
          */
         async function fetchStockData() {
             const statusMessage = document.getElementById('statusMessage');
             const tableContainer = document.getElementById('tableContainer');
+            const economicIndicators = document.getElementById('economicIndicators');
             const refreshBtn = document.getElementById('refreshBtn');
             const exportBtn = document.getElementById('exportBtn');
 
@@ -390,6 +467,7 @@
             statusMessage.innerHTML = '<div class="status-message loading">⏳ Fetching latest data...</div>';
             statusMessage.style.display = 'block';
             tableContainer.style.display = 'none';
+            economicIndicators.style.display = 'none';
             refreshBtn.disabled = true;
             exportBtn.disabled = true;
 
@@ -409,7 +487,8 @@
                 }
 
                 // Filter out any stocks that failed to fetch
-                stockData = result.data.filter(stock => stock.price !== null);
+                stockData = result.stocks.filter(stock => stock.price !== null);
+                economicData = result.economicIndicators;
 
                 if (stockData.length === 0) {
                     throw new Error('No stock data available');
@@ -417,11 +496,12 @@
 
                 lastFetchTime = new Date(result.timestamp);
 
-                // Hide loading, show table
+                // Hide loading, show data
                 statusMessage.style.display = 'none';
                 tableContainer.style.display = 'block';
 
                 // Render the data
+                renderEconomicIndicators();
                 renderStockTable();
                 updateTimestamp();
 
@@ -440,11 +520,70 @@
                 `;
                 statusMessage.style.display = 'block';
                 tableContainer.style.display = 'none';
+                economicIndicators.style.display = 'none';
                 exportBtn.disabled = true;
 
             } finally {
                 // Re-enable refresh button
                 refreshBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Render economic indicators
+         */
+        function renderEconomicIndicators() {
+            const container = document.getElementById('economicIndicators');
+
+            if (!economicData) {
+                container.style.display = 'none';
+                return;
+            }
+
+            let html = '';
+
+            // Inflation Card
+            if (economicData.inflation) {
+                const inflationRate = economicData.inflation.rate;
+                const inflationDisplay = inflationRate !== null
+                    ? `${inflationRate.toFixed(2)}%`
+                    : 'N/A';
+
+                html += `
+                    <div class="indicator-card">
+                        <div class="indicator-label">Inflation Rate</div>
+                        <div class="indicator-value">${inflationDisplay}</div>
+                        <div class="indicator-meta">
+                            ${economicData.inflation.type || 'CPI'} •
+                            ${economicData.inflation.period || 'Latest'} •
+                            ${economicData.inflation.country || 'USA'}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Interest Rate Card
+            if (economicData.interestRate) {
+                const interestRate = economicData.interestRate.centralBankRate;
+                const rateDisplay = interestRate !== null
+                    ? `${interestRate.toFixed(2)}%`
+                    : 'N/A';
+
+                html += `
+                    <div class="indicator-card">
+                        <div class="indicator-label">Interest Rate</div>
+                        <div class="indicator-value">${rateDisplay}</div>
+                        <div class="indicator-meta">
+                            ${economicData.interestRate.rateName || 'Fed Rate'} •
+                            ${economicData.interestRate.country || 'USA'}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (html) {
+                container.innerHTML = html;
+                container.style.display = 'grid';
             }
         }
 
@@ -487,6 +626,7 @@
                 row.innerHTML = `
                     <td><strong>${stock.companyName}</strong></td>
                     <td>${stock.ticker}</td>
+                    <td><span class="sector-badge">${stock.sector}</span></td>
                     <td class="price-cell">
                         <span class="${priceClass}">$${stock.price.toFixed(2)}</span>
                     </td>
@@ -522,8 +662,8 @@
         }
 
         /**
-         * Export stock data to CSV format
-         * Downloads a CSV file with all current stock information
+         * Export stock data and economic indicators to CSV format
+         * Downloads a CSV file with all current information
          */
         function exportToCSV() {
             if (stockData.length === 0) {
@@ -531,15 +671,39 @@
                 return;
             }
 
-            // Create CSV header
-            const headers = ['Company', 'Ticker', 'Current Price', 'Timestamp'];
-            const csvRows = [headers.join(',')];
+            const csvRows = [];
 
-            // Add data rows
+            // Add economic indicators section
+            if (economicData) {
+                csvRows.push('ECONOMIC INDICATORS');
+                csvRows.push('');
+
+                if (economicData.inflation && economicData.inflation.rate !== null) {
+                    csvRows.push(`Inflation Rate,${economicData.inflation.rate.toFixed(2)}%,${economicData.inflation.type || 'CPI'},${economicData.inflation.period || 'Latest'},${economicData.inflation.country || 'USA'}`);
+                }
+
+                if (economicData.interestRate && economicData.interestRate.centralBankRate !== null) {
+                    csvRows.push(`Interest Rate,${economicData.interestRate.centralBankRate.toFixed(2)}%,${economicData.interestRate.rateName || 'Fed Rate'},${economicData.interestRate.country || 'USA'}`);
+                }
+
+                csvRows.push('');
+                csvRows.push('');
+            }
+
+            // Add stock data section
+            csvRows.push('STOCK PERFORMANCE');
+            csvRows.push('');
+
+            // Create CSV header for stocks
+            const headers = ['Company', 'Ticker', 'Sector', 'Current Price', 'Timestamp'];
+            csvRows.push(headers.join(','));
+
+            // Add stock data rows
             stockData.forEach(stock => {
                 const row = [
                     `"${stock.companyName}"`,
                     stock.ticker,
+                    `"${stock.sector}"`,
                     stock.price.toFixed(2),
                     `"${stock.timestamp}"`
                 ];
@@ -557,7 +721,7 @@
             // Generate filename with timestamp
             const timestamp = new Date().toISOString().split('T')[0];
             link.setAttribute('href', url);
-            link.setAttribute('download', `competitor-stocks-${timestamp}.csv`);
+            link.setAttribute('download', `business-intelligence-${timestamp}.csv`);
             link.style.visibility = 'hidden';
 
             // Trigger download
